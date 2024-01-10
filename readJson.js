@@ -5,8 +5,7 @@ class ReadJson {
 
   getJson() {
     const response = fs.readFileSync("./data/prueba-01.json", "utf8");
-    const json = JSON.parse(response);
-    return json;
+    return JSON.parse(response);
   }
 
   toArray(myArray) {

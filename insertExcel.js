@@ -8,15 +8,17 @@ async function manipulateExcel() {
   const sheet = workbook.addWorksheet("sheet1");
 
   const readJson = new ReadJson();
+  const json = readJson.getJson();
   let header = [];
+  
+  for (let index =0; index < json.length; index++) {
+    header.push(addHeaders(json[index], ""));
 
-  for (let index = 0; index < readJson.getJson(); index++) {
-    header.push(addHeaders(readJson.getJson()[i], ""));
   }
   sheet.addRow(headersModification(header));
 
-  for (let index = 0; index < 4; index++) {
-    const rows = addRows(readJson.getJson()[i]);
+  for (let index = 0; index < json.length; index++) {
+    const rows = addRows(json[index]);
     const modifiedRows = rows.map((element) => {
       if (typeof element === "string") {
         return element.replace("undefined/", "");
@@ -61,8 +63,8 @@ function conditionHeadersValue(key, myString) {
 function headersModification(headers) {
   let finalHeaders = [];
 
-  for (const i in headers) {
-    const header = headers[i];
+  for (const index in headers) {
+    const header = headers[index];
 
     for (let j = 0; j < header.length; j++) {
       if (header.indexOf(header[j]) !== header.lastIndexOf(header[j])) {
@@ -78,8 +80,8 @@ function headersModification(headers) {
 function addtoRow(headers, rows) {
   let rowFinal = [];
 
-  for (let i = 0; i < headers.length; i++) {
-    const header = headers[i];
+  for (let index = 0; index < headers.length; index++) {
+    const header = headers[index];
 
     for (let j = 0; j < rows.length; j++) {
       if (header == rows[j]) {
