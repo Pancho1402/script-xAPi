@@ -77,7 +77,6 @@ function addHeaders(myObject, myString) {
         // se hace uso de funcion recursiva para ingresar a los objetos con el valor y obtener su key, tambien se realiza una modicacion del key
         headers.push(addHeaders(value, conditionHeadersValue(key, myString)));
       } else {
-
         headers.push(conditionHeadersValue(key, myString));
       }
     }
