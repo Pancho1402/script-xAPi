@@ -3,36 +3,41 @@ const ExcelJS = require("exceljs");
 const ReadJson = require("./readJson");
 // permite la lectura de los datos.
 
-manipulateExcel();
-
 async function manipulateExcel() {
-  
   // Crear un nuevo libro de Excel y una hoja llamada "sheet1"
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("sheet1");
+
+
+  // Guardar el libro de Excel en un archivo
+  await workbook.xlsx.writeFile('./data/output.xlsx');
+
+  // Ahora que el archivo Excel está creado, puedes abrirlo y agregar filas si es necesario
+  const existingWorkbook = new ExcelJS.Workbook();
+  await existingWorkbook.xlsx.readFile('./data/output.xlsx');
+  const existingSheet = existingWorkbook.getWorksheet("sheet1");
 
   // Leer el JSON utilizando la clase ReadJson
   const readJson = new ReadJson();
   const json = readJson.getJson(); // se obtienen los datos por medio del metodo getJson
 
   let header = [];
-  
+
   // Crear encabezados a partir del JSON
-  for (let index =0; index < json.length; index++) {
+  for (let index = 0; index < json.length; index++) {
     header.push(addHeaders(json[index], ""));
   }
-
-  // Agregar encabezados a la hoja de cálculo
-  sheet.addRow(headersModification(header));
   
+  // Agregar encabezados a la hoja de cálculo
+  existingSheet.addRow(headersModification(header));
+
+  await existingWorkbook.xlsx.writeFile('./data/output.xlsx');
+
   // Agregar filas a la hoja de cálculo
   for (let index = 0; index < json.length; index++) {
     const rows = addRows(json[index]);
-    
-    //modifica los row para modificar las cadena que contengan undefined
-    // ejemplo: 
-    // antes: undefined/actor/objectType
 
+    // Modificar las filas para eliminar las cadenas que contengan "undefined/"
     const modifiedRows = rows.map((element) => {
       if (typeof element === "string") {
         return element.replace("undefined/", "");
@@ -40,18 +45,21 @@ async function manipulateExcel() {
         return element;
       }
     });
-    
-    // despues: actor/objectType
 
     // rowFinally almacena un vector, para ser agregar al excel
     const rowFinally = addtoRow(headersModification(header), modifiedRows);
-    sheet.addRow(rowFinally); // se termina recorrer un stament, continua con el siguiente stament
+    existingSheet.addRow(rowFinally);
   }
 
-  // Guardar el archivo Excel
-  console.log("Datos guardados");
-  await workbook.xlsx.writeFile("./data/output.xlsx");
+  // Guardar el archivo Excel actualizado
+  await existingWorkbook.xlsx.writeFile('./data/output.xlsx');
+  console.log('Se creo correctamente');
 }
+
+// Funciones de manipulación de datos, como addHeaders, addRows, addtoRow y headersModification
+
+// Llama a la función principal
+manipulateExcel();
 
 function addHeaders(myObject, myString) {
   // Genera encabezados recursivamente a partir de un objeto JSON
