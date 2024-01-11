@@ -11,6 +11,7 @@ async function manipulateExcel() {
 
   // Guardar el libro de Excel en un archivo
   await workbook.xlsx.writeFile('./data/output.xlsx');
+  console.log('Se creo el libro de Excel');
 
   // Ahora que el archivo Excel está creado, puedes abrirlo y agregar filas si es necesario
   const existingWorkbook = new ExcelJS.Workbook();
@@ -32,6 +33,8 @@ async function manipulateExcel() {
   existingSheet.addRow(headersModification(header));
 
   await existingWorkbook.xlsx.writeFile('./data/output.xlsx');
+  console.log('Se insertó el headers al libro de Excel');
+
 
   // Agregar filas a la hoja de cálculo
   for (let index = 0; index < json.length; index++) {
@@ -53,7 +56,7 @@ async function manipulateExcel() {
 
   // Guardar el archivo Excel actualizado
   await existingWorkbook.xlsx.writeFile('./data/output.xlsx');
-  console.log('Se creo correctamente');
+  console.log('Se insertó los statements al libro Excel');
 }
 
 // Funciones de manipulación de datos, como addHeaders, addRows, addtoRow y headersModification
@@ -135,34 +138,20 @@ function headersModification(headers) { // almacena una matriz de encabezados
 
 function addtoRow(headers, rows) {
   // Agrega elementos a una fila según el encabezado
-  let rowFinal = [];
+  const rowFinal = headers.map((element) => {
+    if (rows.includes(element)) {
+      // si encuenta una similitud, se captura su siguiente valor que seria el valor del objeto.
 
-  for (let index = 0; index < headers.length; index++) {
-    const header = headers[index];
-
-    for (let j = 0; j < rows.length; j++) {
-      // se busca en el row una cedena que sea igual a la que se encuentra en el header
-      /*
-
-        header= ["actor/name"] 
-        rows = ["actor/name", "Francisco"]
-      */
-      if (header == rows[j]) {
-        // si encuenta una similitud, se captura su siguiente valor que seria el valor del objeto.
-
-        //"actor/name" == "actor/name"
-        // rowFinal.push("Francisco");
-
-        rowFinal.push(rows[j + 1]);
-        break;
-        
-      } else if (j == rows.length - 1) {// permite validar en que posicion nos encontramos de rows, ya que con un else se multiplicaban los datos, y se tenia que obtener en que posicion nos encontramos para colacar vacio.
-        // en caso de que no se alla encontrado, se ingresa vacio
-        
-        rowFinal.push("");
-      }
+      //"actor/name" == "actor/name"
+      // rowFinal.push("Francisco");
+      const index = rows.indexOf(element);
+      return rows[index + 1];
+    } else {
+      // permite validar en que posicion nos encontramos de rows, ya que con un else se multiplicaban los datos, y se tenia que obtener en que posicion nos encontramos para colacar vacio.
+          // en caso de que no se alla encontrado, se ingresa vacio
+      return "";
     }
-  }
+  });
 
   return rowFinal;
 }
