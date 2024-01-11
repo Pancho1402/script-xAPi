@@ -6,16 +6,15 @@ const ReadJson = require("./readJson");
 async function manipulateExcel() {
   // Crear un nuevo libro de Excel y una hoja llamada "sheet1"
   const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet("sheet1");
-
+  workbook.addWorksheet("sheet1");
 
   // Guardar el libro de Excel en un archivo
-  await workbook.xlsx.writeFile('./data/output.xlsx');
-  console.log('Se creo el libro de Excel');
+  await workbook.xlsx.writeFile("./data/output.xlsx");
+  console.log("Se creo el libro de Excel");
 
   // Ahora que el archivo Excel está creado, puedes abrirlo y agregar filas si es necesario
   const existingWorkbook = new ExcelJS.Workbook();
-  await existingWorkbook.xlsx.readFile('./data/output.xlsx');
+  await existingWorkbook.xlsx.readFile("./data/output.xlsx");
   const existingSheet = existingWorkbook.getWorksheet("sheet1");
 
   // Leer el JSON utilizando la clase ReadJson
@@ -25,20 +24,18 @@ async function manipulateExcel() {
   let header = [];
 
   // Crear encabezados a partir del JSON
-  for (let index = 0; index < json.length; index++) {
-    header.push(addHeaders(json[index], ""));
+  for (let value of json) {
+    header.push(addHeaders(value, ""));
   }
-  
   // Agregar encabezados a la hoja de cálculo
   existingSheet.addRow(headersModification(header));
 
-  await existingWorkbook.xlsx.writeFile('./data/output.xlsx');
-  console.log('Se insertó el headers al libro de Excel');
-
+  await existingWorkbook.xlsx.writeFile("./data/output.xlsx");
+  console.log("Se insertó el headers al libro de Excel");
 
   // Agregar filas a la hoja de cálculo
-  for (let index = 0; index < json.length; index++) {
-    const rows = addRows(json[index]);
+  for (let value of json) {
+    const rows = addRows(value);
 
     // Modificar las filas para eliminar las cadenas que contengan "undefined/"
     const modifiedRows = rows.map((element) => {
@@ -55,11 +52,9 @@ async function manipulateExcel() {
   }
 
   // Guardar el archivo Excel actualizado
-  await existingWorkbook.xlsx.writeFile('./data/output.xlsx');
-  console.log('Se insertó los statements al libro Excel');
+  await existingWorkbook.xlsx.writeFile("./data/output.xlsx");
+  console.log("Se insertó los statements al libro Excel");
 }
-
-// Funciones de manipulación de datos, como addHeaders, addRows, addtoRow y headersModification
 
 // Llama a la función principal
 manipulateExcel();
@@ -69,66 +64,54 @@ function addHeaders(myObject, myString) {
   let headers = []; // almacena una matriz de objetos
   const readJson = new ReadJson();
 
-  for (let key in myObject) {
-    if (myObject.hasOwnProperty(key)) {
-      const value = myObject[key];
-
-      if (typeof value === "object" && value !== null) {
-        // se hace uso de funcion recursiva para ingresar a los objetos con el valor y obtener su key, tambien se realiza una modicacion del key
-        headers.push(addHeaders(value, conditionHeadersValue(key, myString)));
-      } else {
-        headers.push(conditionHeadersValue(key, myString));
-      }
+  for (const [key, value] of Object.entries(myObject)) {
+    if (typeof value === "object" && value !== null) {
+      // se hace uso de funcion recursiva para ingresar a los objetos con el valor y obtener su key, tambien se realiza una modicacion del key
+      headers.push(addHeaders(value, conditionHeadersValue(key, myString)));
+    } else {
+      headers.push(conditionHeadersValue(key, myString));
     }
   }
   // se realiza una conversion de matriz a vector
   return readJson.toArray(headers);
 }
 function addRows(myObject, myString) {
-  // Genera filas y encabezados recursivamente a partir de un objeto JSON
-  let rows = [];
   const readJson = new ReadJson();
+  let rows = [];
 
-  for (let key in myObject) {
-    if (myObject.hasOwnProperty(key)) {
-      const value = myObject[key];
-
-      if (typeof value === "object" && value !== null) {
-        rows.push(addRows(value, conditionHeadersValue(key, myString)));
-      } else {
-        rows.push(conditionHeadersValue(key, myString), value);
-      }
+  for (const [key, value] of Object.entries(myObject)) {
+    if (typeof value === "object" && value !== null) {
+      rows.push(addRows(value, conditionHeadersValue(key, myString)));
+    } else {
+      rows.push(conditionHeadersValue(key, myString), value);
     }
   }
 
   return readJson.toArray(rows);
 }
 
-
 function conditionHeadersValue(key, myString) {
-  // Condición para formatear los encabezados, 
+  // Condición para formatear los encabezados,
   const condition = myString == ""; // retorna un boolean, si esta vacio retorna true sino false
 
   // en caso de que el boolean sea true, la key se matiene de lo contrario se modifica.
   return condition ? key : `${myString}/${key}`;
 }
 
-function headersModification(headers) { // almacena una matriz de encabezados
+function headersModification(headers) {
+  // almacena una matriz de encabezados
   // crea  un nuevo encabezado apartir de los encabezados proporcionados, esto para evitar duplicados
   let finalHeaders = [];
 
-  for (const index in headers) {
-    const header = headers[index];
-
-    for (let j = 0; j < header.length; j++) {
-
+  for (const header of headers) {
+    for (const value of header) {
       // se valida sino se encuentran encabezados similares.
-      if (header.indexOf(header[j]) !== header.lastIndexOf(header[j])) {
-        // si no hay duplicados se procede a insertar al nuevo encabezado 
-        finalHeaders.push(header[j]);
-      } else if (finalHeaders.indexOf(header[j]) === -1) {
-        // si se encuentran duplicados se toma uno de los duplicados. 
-        finalHeaders.push(header[j]);
+      if (header.indexOf(value) !== header.lastIndexOf(value)) {
+        // si no hay duplicados se procede a insertar al nuevo encabezado
+        finalHeaders.push(value);
+      } else if (finalHeaders.indexOf(value) === -1) {
+        // si se encuentran duplicados se toma uno de los duplicados.
+        finalHeaders.push(value);
       }
     }
   }
@@ -147,11 +130,10 @@ function addtoRow(headers, rows) {
       return rows[index + 1];
     } else {
       // permite validar en que posicion nos encontramos de rows, ya que con un else se multiplicaban los datos, y se tenia que obtener en que posicion nos encontramos para colacar vacio.
-          // en caso de que no se alla encontrado, se ingresa vacio
+      // en caso de que no se alla encontrado, se ingresa vacio
       return "";
     }
   });
 
   return rowFinal;
 }
-
